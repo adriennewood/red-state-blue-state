@@ -1,0 +1,76 @@
+---
+title: "Red State Blue State Planned Analyses"
+author: "Adrienne Wood"
+date: "5/11/2020"
+output: html_document
+
+---
+
+```{r load libraries,include=F}
+library(pacman)
+p_load(knitr)
+```
+
+## Simulate a dataset for Task 1
+```{r simulate data Task 1}
+# DEFINE KEY VARIABLES HERE #
+nParticipants=400 #set desired sample size
+allStates = c("Colorado","Florida","Nevada","NorthCarolina","Wisconsin","Ohio","NewHampshire","Pennsylvania") #define the possible states
+allColorConditions =c("yellowGreenDich","yellowGreenCont",
+                      "redBlueDich","redBlueCont","grey")
+
+# Synthesize dataset
+df <- data.frame(subID=c(1:nParticipants)) # initial dataframe with subject IDs
+
+for(participant in df$subID){ #loop through the IDs
+  
+  #assign a color condition
+  df[participant,"colorCond"]<-sample(allColorConditions,size=1)
+  
+  # assign the 4 states that get color1 
+  # (e.g., if condition is "yellowGreen", then color1 states are yellow)
+  fourStates <-sample(allStates,size=4,replace=F) 
+  df[participant,"color1states"] <- paste(fourStates, sep="_", collapse="_") 
+  
+  # create a DV column for each of the 8 states and generate random response
+  # on our DV (which is percent of voters in that state)
+  for(state in allStates){
+    df[participant,state] <-as.integer(rnorm(1,mean=50,sd=10))
+  }
+}
+
+# print the dataset
+kable(df, caption="Synthetic Task 1 Data")
+```
+
+## Task 1 Analyses
+
+### Calculate each participant's F statistic
+Each participant judged the political leaning of 8 states that were randomly assigned to one of two color-coded groups. We want to know the ratio of the Sum of Squares Between groups (SSB, which is how differently the participant judged the two groups' political leanings to be) to the Sum of Squares Within groups (SSW, which is how much variance the participant's responses had for each of the two groups).  
+
+In other words, we want to calculate an **ANOVA** for each participant and use the resulting F statistic as our index of that participant's estimate of how different the two groups' politics are. 
+```{r task 1 data processing}
+
+for(participant in df$subID){
+  partdf <-data.frame("color"=NA,"value"=NA) #create an empty df for this subject
+  for(state in allStates){ #loop through all 8 states
+    
+    #if the state is in this participant's "color1" variable, add it to the
+    #participant's df with color=1 and value=the participant's response.
+    if(grepl(state, df[df$subID==participant,"color1states"], fixed=TRUE)){
+      partdf <- rbind(partdf,data.frame("color"=1,"value"=df[df$subID==participant,state]))
+    #if the state isn't in this participant's "color1" variable, add it to the 
+    #participant's df with color=2 and value=the participant's repsonse.
+    }   
+    else{
+      partdf <- rbind(partdf,data.frame("color"=2,"value"=df[df$subID==participant,state]))
+    }
+  }
+  # calculate the participant's F score and add it to our original dataframe,
+  # along with SSW and SSB
+  partAnovaSummary <-summary(aov(value~color,partdf))
+  df[df$subID==participant,"SSB"]<-partAnovaSummary[[1]][2][1,'Sum Sq']
+  df[df$subID==participant,"SSW"]<-partAnovaSummary[[1]][2][2,'Sum Sq']
+  df[df$subID==participant,"Fvalue"]<-partAnovaSummary[[1]][4][1,'F value']
+}
+```
