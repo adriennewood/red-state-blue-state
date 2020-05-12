@@ -1,31 +1,59 @@
 ---
-title: "Red State Blue State Planned Analyses"
-author: "Adrienne Wood"
+title: "Red state, blue state: Do dichotomized political maps increase perceived polarization? *Planned analyses for Stage 1 Registered Report*"
+author: "Rémy A. Furrer, Adrienne Wood, Karen Schloss, Gary Lupyan, & Paula M. Niedenthal"
 date: "5/11/2020"
-output: html_document
+output: 
+  html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+      code_folding: hide
 
 ---
 
+
 ```{r load libraries,include=F}
 library(pacman)
-p_load(knitr)
+p_load(knitr,DT,ggridges,lmSupport,ggplot2, dplyr,tidyr,MASS)
 ```
 
-## Simulate a dataset for Task 1
+# Task 1 data synthesis 
+### Study design
+
+|             	| Red/blue    	| Yellow/green    	| No color 	|
+|-------------	|-------------	|-----------------	|----------	|
+| **Dichotomous** 	| redBlueDich 	| yellowGreenDich 	| grey     	|
+| **Continuous**  	| redBlueCont 	| yellowGreenCont 	|          	|
+***  
+  
+### Key parameters to update as study design changes  
+* **nParticipants**: Simulated sample size  
+* **allStates**: U.S. states included in task  
+* **allColorConditions**: Experimental conditions
+* **conditionDiffsMeans**: *Relevant for data synthesis only*. How different should the color 1 and color 2 means of states be (on a 1-100 percentage scale)? A value of "5" means each group of states should will be +/- 5 points from the midpoint, aka the groups will be 10 points apart
+* **conditionSDs**: *Relevant for data synthesis only*. How varied should the color 1 and color 2 states be (within color, again on a 1-100 percentage scale)?
+
+***  
+
 ```{r simulate data Task 1}
-# DEFINE KEY VARIABLES HERE #
+#### DEFINE KEY PARAMETERS HERE ####
 nParticipants=400 #set desired sample size
 allStates = c("Colorado","Florida","Nevada","NorthCarolina","Wisconsin","Ohio","NewHampshire","Pennsylvania") #define the possible states
 allColorConditions =c("yellowGreenDich","yellowGreenCont",
-                      "redBlueDich","redBlueCont","grey")
+                      "redBlueDich","redBlueCont","grey") # what are the conditions?
+conditionDiffsMeans=c(5,5,10,7,0) # what should the effect of each condition be on the mean?
+conditionSDs = c(4,7,4,7,4) # what should the effect of each condition be on the SD?
 
-# Synthesize dataset
+#### Synthesize dataset ####
+colorConditionNums=seq(1,length(allColorConditions),by=1) # how many conditions are there?
+
 df <- data.frame(subID=c(1:nParticipants)) # initial dataframe with subject IDs
 
 for(participant in df$subID){ #loop through the IDs
   
   #assign a color condition
-  df[participant,"colorCond"]<-sample(allColorConditions,size=1)
+  thisCondNum <-sample(colorConditionNums,size=1)
+  df[participant,"colorCond"]<-allColorConditions[thisCondNum]
   
   # assign the 4 states that get color1 
   # (e.g., if condition is "yellowGreen", then color1 states are yellow)
@@ -35,17 +63,63 @@ for(participant in df$subID){ #loop through the IDs
   # create a DV column for each of the 8 states and generate random response
   # on our DV (which is percent of voters in that state)
   for(state in allStates){
-    df[participant,state] <-as.integer(rnorm(1,mean=50,sd=10))
+    if(state %in% fourStates){
+      # if the state is assigned to color 1, arbitrarily make it a lower-scored state
+      thisVal <- as.integer(rnorm(1,mean=(50-conditionDiffsMeans[thisCondNum]),
+                                  sd=conditionSDs))
+    }
+    else{
+      # if the state is assigned to color 2, make it a higher-scored state
+     thisVal <- as.integer(rnorm(1,mean=(50+conditionDiffsMeans[thisCondNum]),
+                                  sd=conditionSDs)) 
+    }
+      df[participant,state] <-thisVal
   }
 }
-
-# print the dataset
-kable(df, caption="Synthetic Task 1 Data")
 ```
 
-## Task 1 Analyses
+### Synthetic data
+```{r print synthetic data}
+DT::datatable(df, caption="Synthetic Task 1 Data")
+```
 
-### Calculate each participant's F statistic
+## Density plots of participants' responses by condition
+First convert dataframe to long format and center responses within-participant for plotting purposes
+
+```{r df to long,include=FALSE}
+df$subID<-as.factor(df$subID)
+# convert to long format
+dfL <- gather(df,state,percent,all_of(allStates),factor_key=TRUE)
+
+# center percent within-participant so our density plots don't reflect participant biases
+dfL<- dfL %>%
+  mutate_at(. , vars(percent),funs(percentC=.-ave(.,subID,FUN=function(x) mean(x, na.rm=T))))
+```
+
+Then plot 
+
+```{r density plots for each}
+
+
+plot <-ggplot(dfL,aes(x=percentC,y=colorCond,fill=colorCond))+
+    ggridges::stat_density_ridges()+
+    scale_fill_manual(values=rev(c("green","light green", "blue", "light blue", "grey")))+
+    theme(text=element_text(size=12),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))
+        
+
+plot
+
+```
+
+***
+
+# Task 1 analyses  
+
+## Calculate each participant's F statistic
 Each participant judged the political leaning of 8 states that were randomly assigned to one of two color-coded groups. We want to know the ratio of the Sum of Squares Between groups (SSB, which is how differently the participant judged the two groups' political leanings to be) to the Sum of Squares Within groups (SSW, which is how much variance the participant's responses had for each of the two groups).  
 
 In other words, we want to calculate an **ANOVA** for each participant and use the resulting F statistic as our index of that participant's estimate of how different the two groups' politics are. 
@@ -73,4 +147,198 @@ for(participant in df$subID){
   df[df$subID==participant,"SSW"]<-partAnovaSummary[[1]][2][2,'Sum Sq']
   df[df$subID==participant,"Fvalue"]<-partAnovaSummary[[1]][4][1,'F value']
 }
+```
+
+## Main analyses for Task 1
+Do red/blue, yellow/green, and no color differ from each other? Our primary analyses are with participants' **F values** (ratio of SSB/SSW) as the outcome variable, but secondary analyses will use **SSB** and **SSW** to clarify what type of polarization, if any, we're getting.  
+
+**Note on model assumptions**: We need to log-transform the synthesized Fvalue, SSB, and SSW outcome variables because they are overdispersed and have positive skew. This mostly corrects for non-normally distributed residuals, but note that the log(Fvalue+1) variable still has some non-normalcy due to F values having an asymptote at 0. **With the real data,** we will check for model assumptions using the modelAssumptions() function from the lmSupport package and may transform/alter the variables/model accordingly, using the MASS::boxcox() function to help determine the appropriate Lamda. If it is <1, we will see if log(var+1) achieves normality.
+
+```{r transform dvs}
+df$FvalueLog <-log(df$Fvalue+1)
+df$SSBLog <-log(df$SSB+1)
+df$SSWLog <-log(df$SSW+1)
+```
+
+Before running the mdoels we need to recode the color condition variable so color and gradient conditions are separate variables:  
+* Create a **gradient** variable that is -.5 for dichotomous colors, .5 for continuous, and NA for the no color condition.   
+* Then create a **LINEAR color scheme variable** that tests the prediction that participants will have the most polarized responses in red/blue condition (.5), then yellow/green (0), and the least in the no color condition (-.5).   
+* Also create an **ORTHOGONAL color scheme contrast variable** to check for the other possible pattern, a U-shape (no color = -1/3, yellow/green = 2/3, red/blue = -1/3)
+  
+**!! I'm not sure of the best way to treat the no color condition in these analyses!! What's a reasonable model that would include all the data at once?** Keep in mind the 2*3-ish design with an empty cell. We could consider using the No Color condition responses as the "null model" distribution and see if the distributions of the other conditions differ from it.  
+
+```{r recode color condition variable}
+# create a gradient variable 
+df$colorGradient <-ifelse(grepl("Dich", df$colorCond, fixed=TRUE),"dichotomous",
+                        ifelse(grepl("Cont", df$colorCond,
+                                             fixed=TRUE),"continuous","none"))
+
+# create a LINEAR color scheme variable 
+df$colorLinear <-ifelse(grepl("redBlue", df$colorCond, fixed=TRUE),.5,
+                        ifelse(grepl("yellowGreen", df$colorCond, fixed=TRUE),0,-.5))
+# make a version of the LINEAR scheme for analyses that don't include the no color condition
+df$colorLinear2 <-ifelse(grepl("redBlue", df$colorCond, fixed=TRUE),.5,
+                        ifelse(grepl("yellowGreen", df$colorCond,
+                                     fixed=TRUE),-.5,NA))
+
+# create an ORTHOGONAL color scheme variable
+df$colorOrthogonal <-ifelse(grepl("redBlue", df$colorCond, fixed=TRUE),-1.0/3.0,
+                        ifelse(grepl("yellowGreen", df$colorCond, fixed=TRUE),
+                               2.0/3.0,-1.0/3.0))
+
+```
+
+### Effect of color scheme, excluding the continuous gradient conditions
+For now, I'm excluding the continuous gradient data from these analyses because the "no color" condition doesn't have an equivalent gradient manipulation.  
+
+#### Effect of color scheme on F values, dichotomous colors only 
+```{r task 1 F color analyses}
+modFcolor <-lm(FvalueLog~colorLinear+colorOrthogonal,data=df[df$colorGradient!="continuous",])
+summary(modFcolor)
+```
+
+#### Effect of color scheme on Sum of Squares Within, dichotomous colors only
+```{r task 1 SSW color analyses}
+modSSWcolor<-lm(SSWLog~colorLinear+colorOrthogonal,data=df[df$colorGradient!="continuous",])
+summary(modSSWcolor)
+```
+
+#### Effect of color scheme on Sum of Squares Between
+```{r task 1 SSB color analyses}
+modSSBcolor<-lm(SSBLog~colorLinear+colorOrthogonal,data=df[df$colorGradient!="continuous",])
+summary(modSSBcolor)
+```
+
+### Effect of gradient, excluding the No Color condition
+Among the colored maps, does gradient have an effect?
+
+#### Effect of color gradient on F values
+```{r task 1 F grad analyses}
+df$colorGradientN <-varRecode(df$colorGradient,c("dichotomous","continuous","none"),c(-.5,.5,0))
+modFgrad <-lm(FvalueLog~colorLinear2*colorGradientN,data=df[df$colorCond!="grey",])
+summary(modFgrad)
+```
+
+#### Effect of color gradient on Sum of Squares Within
+```{r task 1 SSW grad analyses}
+modSSWgrad<-lm(SSWLog~colorLinear2*colorGradientN,data=df[df$colorCond!="grey",])
+summary(modSSWgrad)
+```
+
+#### Effect of color gradient on Sum of Squares Between
+```{r task 1 SSB grad analyses}
+modSSBgrad<-lm(SSBLog~colorLinear2*colorGradientN,data=df[df$colorCond!="grey",])
+summary(modSSBgrad)
+```
+
+## Plot the Task 1 F values by condition
+```{r graph f values,message=FALSE,warning=FALSE}
+# remove extreme F value outliers for the sake of the graph (+3 SDs)
+dfPlot <-df[df$Fvalue<=mean(df$Fvalue,na.rm=T)+3*sd(df$Fvalue,na.rm=T),]
+plotF <-ggplot(data=dfPlot,aes(x=colorCond,y=log(Fvalue+1),fill=colorCond,color=colorCond))+
+  geom_bar(stat="summary",fun.y="mean", position="dodge")+
+  geom_violin(stat="ydensity",position="dodge",color="black",alpha=.6)+
+  geom_point(position=position_jitter(width=.2),alpha=.4,color="black",fill="black")+
+  theme(text=element_text(size=12),axis.title.x=element_blank(),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))+
+  labs(title="Effect of Color Condition on Polarization Estimates")+
+  ylab("Log-transformed F-values")+
+  scale_fill_manual(values=rev(c("green","light green", "blue", "light blue", "grey")))+
+  scale_color_manual(values=rev(c("green","light green", "blue", "light blue", "grey")))+
+    scale_y_continuous(breaks=c(log(1),log(5),log(25),log(125),log(200)),labels=c(1,5,25,125,200))
+plotF
+```
+
+***
+***
+
+# Task 2 data synthesis
+### Study design
+Participants' color assignments transfer from Task 1 and they are randomly assigned to make judgments about either a Republican majority county or a Democratic majority county. 
+
+|                     	| Red/blue          	| Yellow/green        	| No color              	|
+|---------------------	|-------------------	|---------------------	|-----------------------	|
+| Republican Majority 	| R majority (red)  	| R majority (yellow) 	| R majority (no color) 	|
+| Democratic Majority 	| D majority (blue) 	| D majority (green)  	| D majority (no color) 	|
+
+### Key parameters to update as study design changes  
+* **nParticipants**: Simulated sample size  
+* **experimentalConditions**: Vector of possible conditions (taken from the cells above).
+* **conditionEffects**: *Relevant to data synthesis only.* Simulated average estimate for how likely the target is to vote Republican (vector in same order as experimentalConditions).
+
+***  
+
+```{r simulate data Task 2}
+#### DEFINE KEY PARAMETERS HERE ####
+nParticipants=400 #set desired sample size
+experimentalConditions=c("red_Rep","blue_Dem","yellow_Rep","green_Dem","grey_Rep","grey_Dem") #what are the experimental conditions?
+conditionEffects=c(60,40,55,45,51,49) # what is the mean estimate for each of the above conditions?
+
+#### Synthesize dataset ####
+numConditions=seq(1,length(experimentalConditions),by=1) #how many conditions do we have?
+
+df2 <- data.frame(subID=c(1:nParticipants)) # initial dataframe with subject IDs
+
+for(participant in df2$subID){ #loop through the IDs
+  
+  #assign a condition
+  thisCondNum <-sample(numConditions,size=1)
+  df2[participant,"experimentalCond"]<-experimentalConditions[thisCondNum]
+  
+  # create a DV column and generate random response on our DV (which is percent likelihood that
+  # the target will vote Republican). We'll use a SD of 10, which is arbitrary.
+  df2[participant,"response"] <- as.integer(rnorm(1,mean=(conditionEffects[thisCondNum]),
+                                  sd=10))
+
+  }
+```
+
+### Synthetic data
+```{r print Task 2 synthetic data}
+DT::datatable(df2, caption="Synthetic Task 2 Data")
+```
+
+## Density plots of participants' responses by condition
+
+```{r density plots Task 2}
+
+df2$experimentalCond<-factor(df2$experimentalCond,levels=experimentalConditions)
+
+plotTask2 <-ggplot(df2,aes(x=response,y=experimentalCond,fill=experimentalCond))+
+    ggridges::stat_density_ridges()+
+    scale_fill_manual(values=c("red","blue","yellow","green","grey","grey"))+
+    theme(text=element_text(size=12),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))
+        
+
+plotTask2
+
+```
+
+# Task 2 analyses
+
+First we need to create separate color and political majority variables.  
+
+We'll create a "colorCond" factor variable and a "majorityCond" where Dem= -.5 and Rep = .5.
+```{r recode task2 conditions}
+
+df2$colorCond<-as.factor(ifelse(grepl("red", df2$experimentalCond, fixed=TRUE)|grepl("blue", df2$experimentalCond, fixed=TRUE),"redBlue",
+                        ifelse(grepl("yellow", df2$experimentalCond, fixed=TRUE)|grepl("green", df2$experimentalCond, fixed=TRUE),"yellowGreen","none"))) 
+
+df2$majorityCond <-ifelse(grepl("Dem",df2$experimentalCond,fixed=TRUE),-.5,
+                          ifelse(grepl("Rep",df2$experimentalCond,fixed=TRUE),.5,NA))
+```
+
+In our central analysis for Task 2, we'll use redBlue as the reference level for our colorCond factor. That way the main effect of majorityCond will be the key test of whether the red or blue coloring biases people's estimates. Again, we will use modelAssumptions to visualize the residuals of the model and adjust the model or the variables as necessary. We will conduct parallel analyses with a) the participants' estimates of how likely the target is to vote, period, and b) how important it is that the target vote as the outcome variables. Those variables were not simulated here.
+```{r task 2 regression}
+
+df2$colorCond<-relevel(df2$colorCond,ref="redBlue")
+modTask2 <-lm(response~colorCond*majorityCond,data=df2)
+summary(modTask2)
 ```
