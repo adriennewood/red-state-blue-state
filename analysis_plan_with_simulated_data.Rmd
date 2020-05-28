@@ -1,6 +1,6 @@
 ---
-title: "Red state, blue state: Do dichotomized political maps increase perceived polarization? *Planned analyses for Stage 1 Registered Report*"
-author: "Rémy A. Furrer, Adrienne Wood, Karen Schloss, Gary Lupyan, & Paula M. Niedenthal"
+title: "Red state, blue state: The polarizing influence of color in political maps. *Planned analyses for Stage 1 Registered Report*"
+author: "Rémy A. Furrer, Adrienne Wood, Gary Lupyan, Karen Schloss, & Paula M. Niedenthal"
 date: "5/11/2020"
 output: 
   html_document:
@@ -171,7 +171,7 @@ Before running the mdoels we need to recode the color condition variable so colo
 # create a gradient variable 
 df$colorGradient <-ifelse(grepl("Dich", df$colorCond, fixed=TRUE),"dichotomous",
                         ifelse(grepl("Cont", df$colorCond,
-                                             fixed=TRUE),"continuous","none"))
+                                             fixed=TRUE),"continuous","grey"))
 
 # create a LINEAR color scheme variable 
 df$colorLinear <-ifelse(grepl("redBlue", df$colorCond, fixed=TRUE),.5,
@@ -214,7 +214,7 @@ Among the colored maps, does gradient have an effect?
 
 #### Effect of color gradient on F values
 ```{r task 1 F grad analyses}
-df$colorGradientN <-varRecode(df$colorGradient,c("dichotomous","continuous","none"),c(-.5,.5,0))
+df$colorGradientN <-varRecode(df$colorGradient,c("dichotomous","continuous","grey"),c(.5,-.5,0))
 modFgrad <-lm(FvalueLog~colorLinear2*colorGradientN,data=df[df$colorCond!="grey",])
 summary(modFgrad)
 ```
@@ -329,16 +329,16 @@ We'll create a "colorCond" factor variable and a "majorityCond" where Dem= -.5 a
 ```{r recode task2 conditions}
 
 df2$colorCond<-as.factor(ifelse(grepl("red", df2$experimentalCond, fixed=TRUE)|grepl("blue", df2$experimentalCond, fixed=TRUE),"redBlue",
-                        ifelse(grepl("yellow", df2$experimentalCond, fixed=TRUE)|grepl("green", df2$experimentalCond, fixed=TRUE),"yellowGreen","none"))) 
+                        ifelse(grepl("yellow", df2$experimentalCond, fixed=TRUE)|grepl("green", df2$experimentalCond, fixed=TRUE),"yellowGreen","grey"))) 
 
 df2$majorityCond <-ifelse(grepl("Dem",df2$experimentalCond,fixed=TRUE),-.5,
                           ifelse(grepl("Rep",df2$experimentalCond,fixed=TRUE),.5,NA))
 ```
 
-In our central analysis for Task 2, we'll use redBlue as the reference level for our colorCond factor. That way the main effect of majorityCond will be the key test of whether the red or blue coloring biases people's estimates. Again, we will use modelAssumptions to visualize the residuals of the model and adjust the model or the variables as necessary. We will conduct parallel analyses with a) the participants' estimates of how likely the target is to vote, period, and b) how important it is that the target vote as the outcome variables. Those variables were not simulated here.
+In our central analysis for Task 2, we'll use grey (no color) as the reference level for our colorCond factor. That way the main effect of majorityCond will be a manipulation/attention check that participants are noticing the numeric information presented on the map. Again, we will use modelAssumptions to visualize the residuals of the model and adjust the model or the variables as necessary. We will conduct parallel analyses with the participants' ratings of *how important it is that the target vote* as the outcome variable. That variable was not simulated here.
 ```{r task 2 regression}
 
-df2$colorCond<-relevel(df2$colorCond,ref="redBlue")
+df2$colorCond<-relevel(df2$colorCond,ref="grey")
 modTask2 <-lm(response~colorCond*majorityCond,data=df2)
 summary(modTask2)
 ```
