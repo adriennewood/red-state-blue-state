@@ -1,0 +1,281 @@
+task1Version,mapNumCode,redYellow1,redYellow2,redYellow3,redYellow4
+redBlueDich,1,Nevada,Colorado,Florida,Ohio
+redBlueDich,2,Colorado,Florida,Ohio,New Hampshire
+redBlueDich,3,Colorado,Florida,Ohio,North Carolina
+redBlueDich,4,Colorado,Florida,Ohio,Pennsylvania
+redBlueDich,5,Colorado,Florida,Ohio,Wisconsin
+redBlueDich,6,Nevada,Colorado,Florida,New Hampshire
+redBlueDich,7,Nevada,Colorado,Florida,North Carolina
+redBlueDich,8,Nevada,Colorado,Florida,Pennsylvania
+redBlueDich,9,Nevada,Colorado,Florida,Wisconsin
+redBlueDich,10,Colorado,Florida,New Hampshire,North Carolina
+redBlueDich,11,Colorado,Florida,New Hampshire,Pennsylvania
+redBlueDich,12,Colorado,Florida,New Hampshire,Wisconsin
+redBlueDich,13,Colorado,Florida,Pennsylvania,North Carolina
+redBlueDich,14,Colorado,Florida,North Carolina,Wisconsin
+redBlueDich,15,Colorado,Florida,Pennsylvania,Wisconsin
+redBlueDich,16,Nevada,Colorado,Ohio,New Hampshire
+redBlueDich,17,Nevada,Colorado,Ohio,North Carolina
+redBlueDich,18,Nevada,Colorado,Ohio,Pennsylvania
+redBlueDich,19,Nevada,Colorado,Ohio,Wisconsin
+redBlueDich,20,Colorado,Ohio,New Hampshire,North Carolina
+redBlueDich,21,Colorado,Ohio,New Hampshire,Pennsylvania
+redBlueDich,22,Colorado,Ohio,New Hampshire,Wisconsin
+redBlueDich,23,Colorado,Ohio,Pennsylvania,North Carolina
+redBlueDich,24,Colorado,Ohio,North Carolina,Wisconsin
+redBlueDich,25,Colorado,Ohio,Pennsylvania,Wisconsin
+redBlueDich,26,Nevada,Colorado,New Hampshire,North Carolina
+redBlueDich,27,Nevada,Colorado,New Hampshire,Pennsylvania
+redBlueDich,28,Nevada,Colorado,New Hampshire,Wisconsin
+redBlueDich,29,Nevada,Colorado,Pennsylvania,North Carolina
+redBlueDich,30,Nevada,Colorado,North Carolina,Wisconsin
+redBlueDich,31,Nevada,Colorado,Pennsylvania,Wisconsin
+redBlueDich,32,Colorado,New Hampshire,Pennsylvania,North Carolina
+redBlueDich,33,Colorado,New Hampshire,North Carolina,Wisconsin
+redBlueDich,34,Colorado,New Hampshire,Pennsylvania,Wisconsin
+redBlueDich,35,Colorado,Pennsylvania,North Carolina,Wisconsin
+redBlueDich,36,Nevada,Florida,Ohio,New Hampshire
+redBlueDich,37,Nevada,Florida,Ohio,North Carolina
+redBlueDich,38,Nevada,Florida,Ohio,Pennsylvania
+redBlueDich,39,Nevada,Florida,Ohio,Wisconsin
+redBlueDich,40,Florida,Ohio,New Hampshire,North Carolina
+redBlueDich,41,Florida,Ohio,New Hampshire,Pennsylvania
+redBlueDich,42,Florida,Ohio,New Hampshire,Wisconsin
+redBlueDich,43,Florida,Ohio,Pennsylvania,North Carolina
+redBlueDich,44,Florida,Ohio,North Carolina,Wisconsin
+redBlueDich,45,Florida,Ohio,Pennsylvania,Wisconsin
+redBlueDich,46,Nevada,Florida,New Hampshire,North Carolina
+redBlueDich,47,Nevada,Florida,New Hampshire,Pennsylvania
+redBlueDich,48,Nevada,Florida,New Hampshire,Wisconsin
+redBlueDich,49,Nevada,Florida,Pennsylvania,North Carolina
+redBlueDich,50,Nevada,Florida,North Carolina,Wisconsin
+redBlueDich,51,Nevada,Florida,Pennsylvania,Wisconsin
+redBlueDich,52,Florida,New Hampshire,Pennsylvania,North Carolina
+redBlueDich,53,Florida,New Hampshire,North Carolina,Wisconsin
+redBlueDich,54,Florida,New Hampshire,Pennsylvania,Wisconsin
+redBlueDich,55,Florida,Pennsylvania,North Carolina,Wisconsin
+redBlueDich,56,Nevada,Ohio,New Hampshire,North Carolina
+redBlueDich,57,Nevada,Ohio,New Hampshire,Pennsylvania
+redBlueDich,58,Nevada,Ohio,New Hampshire,Wisconsin
+redBlueDich,59,Nevada,Ohio,Pennsylvania,North Carolina
+redBlueDich,60,Nevada,Ohio,North Carolina,Wisconsin
+redBlueDich,61,Nevada,Ohio,Pennsylvania,Wisconsin
+redBlueDich,62,Ohio,New Hampshire,Pennsylvania,North Carolina
+redBlueDich,63,Ohio,New Hampshire,North Carolina,Wisconsin
+redBlueDich,64,Ohio,New Hampshire,Pennsylvania,Wisconsin
+redBlueDich,65,Ohio,Pennsylvania,North Carolina,Wisconsin
+redBlueDich,66,Nevada,New Hampshire,Pennsylvania,North Carolina
+redBlueDich,67,Nevada,New Hampshire,North Carolina,Wisconsin
+redBlueDich,68,Nevada,New Hampshire,Pennsylvania,Wisconsin
+redBlueDich,69,Nevada,Pennsylvania,North Carolina,Wisconsin
+redBlueDich,70,New Hampshire,Pennsylvania,North Carolina,Wisconsin
+redBlueCont,1,Nevada,Colorado,Florida,Ohio
+redBlueCont,2,Colorado,Florida,Ohio,New Hampshire
+redBlueCont,3,Colorado,Florida,Ohio,North Carolina
+redBlueCont,4,Colorado,Florida,Ohio,Pennsylvania
+redBlueCont,5,Colorado,Florida,Ohio,Wisconsin
+redBlueCont,6,Nevada,Colorado,Florida,New Hampshire
+redBlueCont,7,Nevada,Colorado,Florida,North Carolina
+redBlueCont,8,Nevada,Colorado,Florida,Pennsylvania
+redBlueCont,9,Nevada,Colorado,Florida,Wisconsin
+redBlueCont,10,Colorado,Florida,New Hampshire,North Carolina
+redBlueCont,11,Colorado,Florida,New Hampshire,Pennsylvania
+redBlueCont,12,Colorado,Florida,New Hampshire,Wisconsin
+redBlueCont,13,Colorado,Florida,Pennsylvania,North Carolina
+redBlueCont,14,Colorado,Florida,North Carolina,Wisconsin
+redBlueCont,15,Colorado,Florida,Pennsylvania,Wisconsin
+redBlueCont,16,Nevada,Colorado,Ohio,New Hampshire
+redBlueCont,17,Nevada,Colorado,Ohio,North Carolina
+redBlueCont,18,Nevada,Colorado,Ohio,Pennsylvania
+redBlueCont,19,Nevada,Colorado,Ohio,Wisconsin
+redBlueCont,20,Colorado,Ohio,New Hampshire,North Carolina
+redBlueCont,21,Colorado,Ohio,New Hampshire,Pennsylvania
+redBlueCont,22,Colorado,Ohio,New Hampshire,Wisconsin
+redBlueCont,23,Colorado,Ohio,Pennsylvania,North Carolina
+redBlueCont,24,Colorado,Ohio,North Carolina,Wisconsin
+redBlueCont,25,Colorado,Ohio,Pennsylvania,Wisconsin
+redBlueCont,26,Nevada,Colorado,New Hampshire,North Carolina
+redBlueCont,27,Nevada,Colorado,New Hampshire,Pennsylvania
+redBlueCont,28,Nevada,Colorado,New Hampshire,Wisconsin
+redBlueCont,29,Nevada,Colorado,Pennsylvania,North Carolina
+redBlueCont,30,Nevada,Colorado,North Carolina,Wisconsin
+redBlueCont,31,Nevada,Colorado,Pennsylvania,Wisconsin
+redBlueCont,32,Colorado,New Hampshire,Pennsylvania,North Carolina
+redBlueCont,33,Colorado,New Hampshire,North Carolina,Wisconsin
+redBlueCont,34,Colorado,New Hampshire,Pennsylvania,Wisconsin
+redBlueCont,35,Colorado,Pennsylvania,North Carolina,Wisconsin
+redBlueCont,36,Nevada,Florida,Ohio,New Hampshire
+redBlueCont,37,Nevada,Florida,Ohio,North Carolina
+redBlueCont,38,Nevada,Florida,Ohio,Pennsylvania
+redBlueCont,39,Nevada,Florida,Ohio,Wisconsin
+redBlueCont,40,Florida,Ohio,New Hampshire,North Carolina
+redBlueCont,41,Florida,Ohio,New Hampshire,Pennsylvania
+redBlueCont,42,Florida,Ohio,New Hampshire,Wisconsin
+redBlueCont,43,Florida,Ohio,Pennsylvania,North Carolina
+redBlueCont,44,Florida,Ohio,North Carolina,Wisconsin
+redBlueCont,45,Florida,Ohio,Pennsylvania,Wisconsin
+redBlueCont,46,Nevada,Florida,New Hampshire,North Carolina
+redBlueCont,47,Nevada,Florida,New Hampshire,Pennsylvania
+redBlueCont,48,Nevada,Florida,New Hampshire,Wisconsin
+redBlueCont,49,Nevada,Florida,Pennsylvania,North Carolina
+redBlueCont,50,Nevada,Florida,North Carolina,Wisconsin
+redBlueCont,51,Nevada,Florida,Pennsylvania,Wisconsin
+redBlueCont,52,Florida,New Hampshire,Pennsylvania,North Carolina
+redBlueCont,53,Florida,New Hampshire,North Carolina,Wisconsin
+redBlueCont,54,Florida,New Hampshire,Pennsylvania,Wisconsin
+redBlueCont,55,Florida,Pennsylvania,North Carolina,Wisconsin
+redBlueCont,56,Nevada,Ohio,New Hampshire,North Carolina
+redBlueCont,57,Nevada,Ohio,New Hampshire,Pennsylvania
+redBlueCont,58,Nevada,Ohio,New Hampshire,Wisconsin
+redBlueCont,59,Nevada,Ohio,Pennsylvania,North Carolina
+redBlueCont,60,Nevada,Ohio,North Carolina,Wisconsin
+redBlueCont,61,Nevada,Ohio,Pennsylvania,Wisconsin
+redBlueCont,62,Ohio,New Hampshire,Pennsylvania,North Carolina
+redBlueCont,63,Ohio,New Hampshire,North Carolina,Wisconsin
+redBlueCont,64,Ohio,New Hampshire,Pennsylvania,Wisconsin
+redBlueCont,65,Ohio,Pennsylvania,North Carolina,Wisconsin
+redBlueCont,66,Nevada,New Hampshire,Pennsylvania,North Carolina
+redBlueCont,67,Nevada,New Hampshire,North Carolina,Wisconsin
+redBlueCont,68,Nevada,New Hampshire,Pennsylvania,Wisconsin
+redBlueCont,69,Nevada,Pennsylvania,North Carolina,Wisconsin
+redBlueCont,70,New Hampshire,Pennsylvania,North Carolina,Wisconsin
+yellowGreenDich,1,Nevada,Colorado,Florida,Ohio
+yellowGreenDich,2,Colorado,Florida,Ohio,New Hampshire
+yellowGreenDich,3,Colorado,Florida,Ohio,North Carolina
+yellowGreenDich,4,Colorado,Florida,Ohio,Pennsylvania
+yellowGreenDich,5,Colorado,Florida,Ohio,Wisconsin
+yellowGreenDich,6,Nevada,Colorado,Florida,New Hampshire
+yellowGreenDich,7,Nevada,Colorado,Florida,North Carolina
+yellowGreenDich,8,Nevada,Colorado,Florida,Pennsylvania
+yellowGreenDich,9,Nevada,Colorado,Florida,Wisconsin
+yellowGreenDich,10,Colorado,Florida,New Hampshire,North Carolina
+yellowGreenDich,11,Colorado,Florida,New Hampshire,Pennsylvania
+yellowGreenDich,12,Colorado,Florida,New Hampshire,Wisconsin
+yellowGreenDich,13,Colorado,Florida,Pennsylvania,North Carolina
+yellowGreenDich,14,Colorado,Florida,North Carolina,Wisconsin
+yellowGreenDich,15,Colorado,Florida,Pennsylvania,Wisconsin
+yellowGreenDich,16,Nevada,Colorado,Ohio,New Hampshire
+yellowGreenDich,17,Nevada,Colorado,Ohio,North Carolina
+yellowGreenDich,18,Nevada,Colorado,Ohio,Pennsylvania
+yellowGreenDich,19,Nevada,Colorado,Ohio,Wisconsin
+yellowGreenDich,20,Colorado,Ohio,New Hampshire,North Carolina
+yellowGreenDich,21,Colorado,Ohio,New Hampshire,Pennsylvania
+yellowGreenDich,22,Colorado,Ohio,New Hampshire,Wisconsin
+yellowGreenDich,23,Colorado,Ohio,Pennsylvania,North Carolina
+yellowGreenDich,24,Colorado,Ohio,North Carolina,Wisconsin
+yellowGreenDich,25,Colorado,Ohio,Pennsylvania,Wisconsin
+yellowGreenDich,26,Nevada,Colorado,New Hampshire,North Carolina
+yellowGreenDich,27,Nevada,Colorado,New Hampshire,Pennsylvania
+yellowGreenDich,28,Nevada,Colorado,New Hampshire,Wisconsin
+yellowGreenDich,29,Nevada,Colorado,Pennsylvania,North Carolina
+yellowGreenDich,30,Nevada,Colorado,North Carolina,Wisconsin
+yellowGreenDich,31,Nevada,Colorado,Pennsylvania,Wisconsin
+yellowGreenDich,32,Colorado,New Hampshire,Pennsylvania,North Carolina
+yellowGreenDich,33,Colorado,New Hampshire,North Carolina,Wisconsin
+yellowGreenDich,34,Colorado,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenDich,35,Colorado,Pennsylvania,North Carolina,Wisconsin
+yellowGreenDich,36,Nevada,Florida,Ohio,New Hampshire
+yellowGreenDich,37,Nevada,Florida,Ohio,North Carolina
+yellowGreenDich,38,Nevada,Florida,Ohio,Pennsylvania
+yellowGreenDich,39,Nevada,Florida,Ohio,Wisconsin
+yellowGreenDich,40,Florida,Ohio,New Hampshire,North Carolina
+yellowGreenDich,41,Florida,Ohio,New Hampshire,Pennsylvania
+yellowGreenDich,42,Florida,Ohio,New Hampshire,Wisconsin
+yellowGreenDich,43,Florida,Ohio,Pennsylvania,North Carolina
+yellowGreenDich,44,Florida,Ohio,North Carolina,Wisconsin
+yellowGreenDich,45,Florida,Ohio,Pennsylvania,Wisconsin
+yellowGreenDich,46,Nevada,Florida,New Hampshire,North Carolina
+yellowGreenDich,47,Nevada,Florida,New Hampshire,Pennsylvania
+yellowGreenDich,48,Nevada,Florida,New Hampshire,Wisconsin
+yellowGreenDich,49,Nevada,Florida,Pennsylvania,North Carolina
+yellowGreenDich,50,Nevada,Florida,North Carolina,Wisconsin
+yellowGreenDich,51,Nevada,Florida,Pennsylvania,Wisconsin
+yellowGreenDich,52,Florida,New Hampshire,Pennsylvania,North Carolina
+yellowGreenDich,53,Florida,New Hampshire,North Carolina,Wisconsin
+yellowGreenDich,54,Florida,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenDich,55,Florida,Pennsylvania,North Carolina,Wisconsin
+yellowGreenDich,56,Nevada,Ohio,New Hampshire,North Carolina
+yellowGreenDich,57,Nevada,Ohio,New Hampshire,Pennsylvania
+yellowGreenDich,58,Nevada,Ohio,New Hampshire,Wisconsin
+yellowGreenDich,59,Nevada,Ohio,Pennsylvania,North Carolina
+yellowGreenDich,60,Nevada,Ohio,North Carolina,Wisconsin
+yellowGreenDich,61,Nevada,Ohio,Pennsylvania,Wisconsin
+yellowGreenDich,62,Ohio,New Hampshire,Pennsylvania,North Carolina
+yellowGreenDich,63,Ohio,New Hampshire,North Carolina,Wisconsin
+yellowGreenDich,64,Ohio,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenDich,65,Ohio,Pennsylvania,North Carolina,Wisconsin
+yellowGreenDich,66,Nevada,New Hampshire,Pennsylvania,North Carolina
+yellowGreenDich,67,Nevada,New Hampshire,North Carolina,Wisconsin
+yellowGreenDich,68,Nevada,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenDich,69,Nevada,Pennsylvania,North Carolina,Wisconsin
+yellowGreenDich,70,New Hampshire,Pennsylvania,North Carolina,Wisconsin
+yellowGreenCont,1,Nevada,Colorado,Florida,Ohio
+yellowGreenCont,2,Colorado,Florida,Ohio,New Hampshire
+yellowGreenCont,3,Colorado,Florida,Ohio,North Carolina
+yellowGreenCont,4,Colorado,Florida,Ohio,Pennsylvania
+yellowGreenCont,5,Colorado,Florida,Ohio,Wisconsin
+yellowGreenCont,6,Nevada,Colorado,Florida,New Hampshire
+yellowGreenCont,7,Nevada,Colorado,Florida,North Carolina
+yellowGreenCont,8,Nevada,Colorado,Florida,Pennsylvania
+yellowGreenCont,9,Nevada,Colorado,Florida,Wisconsin
+yellowGreenCont,10,Colorado,Florida,New Hampshire,North Carolina
+yellowGreenCont,11,Colorado,Florida,New Hampshire,Pennsylvania
+yellowGreenCont,12,Colorado,Florida,New Hampshire,Wisconsin
+yellowGreenCont,13,Colorado,Florida,Pennsylvania,North Carolina
+yellowGreenCont,14,Colorado,Florida,North Carolina,Wisconsin
+yellowGreenCont,15,Colorado,Florida,Pennsylvania,Wisconsin
+yellowGreenCont,16,Nevada,Colorado,Ohio,New Hampshire
+yellowGreenCont,17,Nevada,Colorado,Ohio,North Carolina
+yellowGreenCont,18,Nevada,Colorado,Ohio,Pennsylvania
+yellowGreenCont,19,Nevada,Colorado,Ohio,Wisconsin
+yellowGreenCont,20,Colorado,Ohio,New Hampshire,North Carolina
+yellowGreenCont,21,Colorado,Ohio,New Hampshire,Pennsylvania
+yellowGreenCont,22,Colorado,Ohio,New Hampshire,Wisconsin
+yellowGreenCont,23,Colorado,Ohio,Pennsylvania,North Carolina
+yellowGreenCont,24,Colorado,Ohio,North Carolina,Wisconsin
+yellowGreenCont,25,Colorado,Ohio,Pennsylvania,Wisconsin
+yellowGreenCont,26,Nevada,Colorado,New Hampshire,North Carolina
+yellowGreenCont,27,Nevada,Colorado,New Hampshire,Pennsylvania
+yellowGreenCont,28,Nevada,Colorado,New Hampshire,Wisconsin
+yellowGreenCont,29,Nevada,Colorado,Pennsylvania,North Carolina
+yellowGreenCont,30,Nevada,Colorado,North Carolina,Wisconsin
+yellowGreenCont,31,Nevada,Colorado,Pennsylvania,Wisconsin
+yellowGreenCont,32,Colorado,New Hampshire,Pennsylvania,North Carolina
+yellowGreenCont,33,Colorado,New Hampshire,North Carolina,Wisconsin
+yellowGreenCont,34,Colorado,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenCont,35,Colorado,Pennsylvania,North Carolina,Wisconsin
+yellowGreenCont,36,Nevada,Florida,Ohio,New Hampshire
+yellowGreenCont,37,Nevada,Florida,Ohio,North Carolina
+yellowGreenCont,38,Nevada,Florida,Ohio,Pennsylvania
+yellowGreenCont,39,Nevada,Florida,Ohio,Wisconsin
+yellowGreenCont,40,Florida,Ohio,New Hampshire,North Carolina
+yellowGreenCont,41,Florida,Ohio,New Hampshire,Pennsylvania
+yellowGreenCont,42,Florida,Ohio,New Hampshire,Wisconsin
+yellowGreenCont,43,Florida,Ohio,Pennsylvania,North Carolina
+yellowGreenCont,44,Florida,Ohio,North Carolina,Wisconsin
+yellowGreenCont,45,Florida,Ohio,Pennsylvania,Wisconsin
+yellowGreenCont,46,Nevada,Florida,New Hampshire,North Carolina
+yellowGreenCont,47,Nevada,Florida,New Hampshire,Pennsylvania
+yellowGreenCont,48,Nevada,Florida,New Hampshire,Wisconsin
+yellowGreenCont,49,Nevada,Florida,Pennsylvania,North Carolina
+yellowGreenCont,50,Nevada,Florida,North Carolina,Wisconsin
+yellowGreenCont,51,Nevada,Florida,Pennsylvania,Wisconsin
+yellowGreenCont,52,Florida,New Hampshire,Pennsylvania,North Carolina
+yellowGreenCont,53,Florida,New Hampshire,North Carolina,Wisconsin
+yellowGreenCont,54,Florida,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenCont,55,Florida,Pennsylvania,North Carolina,Wisconsin
+yellowGreenCont,56,Nevada,Ohio,New Hampshire,North Carolina
+yellowGreenCont,57,Nevada,Ohio,New Hampshire,Pennsylvania
+yellowGreenCont,58,Nevada,Ohio,New Hampshire,Wisconsin
+yellowGreenCont,59,Nevada,Ohio,Pennsylvania,North Carolina
+yellowGreenCont,60,Nevada,Ohio,North Carolina,Wisconsin
+yellowGreenCont,61,Nevada,Ohio,Pennsylvania,Wisconsin
+yellowGreenCont,62,Ohio,New Hampshire,Pennsylvania,North Carolina
+yellowGreenCont,63,Ohio,New Hampshire,North Carolina,Wisconsin
+yellowGreenCont,64,Ohio,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenCont,65,Ohio,Pennsylvania,North Carolina,Wisconsin
+yellowGreenCont,66,Nevada,New Hampshire,Pennsylvania,North Carolina
+yellowGreenCont,67,Nevada,New Hampshire,North Carolina,Wisconsin
+yellowGreenCont,68,Nevada,New Hampshire,Pennsylvania,Wisconsin
+yellowGreenCont,69,Nevada,Pennsylvania,North Carolina,Wisconsin
+yellowGreenCont,70,New Hampshire,Pennsylvania,North Carolina,Wisconsin

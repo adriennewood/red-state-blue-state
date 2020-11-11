@@ -1,0 +1,555 @@
+---
+title: "Red state, blue state: The polarizing influence of color in political maps. *Data Cleaning and Analyses*"
+author: "Rémy A. Furrer, Adrienne Wood, Gary Lupyan, Karen Schloss, & Paula M. Niedenthal"
+date: "11/3/2020"
+output: 
+  html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+      code_folding: hide
+
+---
+
+
+```{r load libraries,include=F}
+library(pacman)
+p_load(knitr,DT,ggridges,lmSupport,ggplot2, dplyr,tidyr,MASS,sjmisc,tidyverse,plyr,summarytools)
+knitr::opts_chunk$set(results = 'asis',      
+               comment = NA,
+               prompt  = FALSE,
+               cache   = FALSE)
+
+st_options(plain.ascii = FALSE,        
+           style        = "rmarkdown", 
+           footnote     = NA,          
+           subtitle.emphasis = FALSE) 
+```
+
+# Read in data and remove bots, inattentive participants, and unfinished surveys
+```{r read data}
+df <-read.csv("Maps Political Polarization Experiment_November 3, 2020_10.01.csv")
+DT::datatable(df[1:10,],caption="Sample Raw Data")
+set.seed(14)
+```
+## Remove bad data, as preregistered
+We'll delete participants who:
+1. Failed the initial bot check
+2. Failed the mid-way attention check 
+3. Did not say what the study was about using any of the following stems: map\*, politic\*, color\*, vot\*, democrat\*, republican\*, u.s\*, us\*, or united states\*
+4. Said they used outside sources in the debriefing questions at the end
+5. Gave the same responses on 4/8 trials of the Polarization Task (Task 1)
+**Note: we preregistered that we would delete participants who left the survey browser during the task but failed to record that information, so we have to deviate from the preregistration in that way. We also failed to ask participants if they had color vision deficit so we will deviate from the preregistration in that way as well.**
+```{r remove bad data}
+## 1. bot check
+# x, check, 0 version
+df$botPass <-ifelse(df$Q284_1=="Dislike"&df$Q284_2=="Like"&df$Q284_3=="Neutral",1,0)
+# x, 0, check version
+df$botPass <-ifelse(df$Q290_1=="Dislike"&df$Q290_2=="Neutral"&df$Q290_3=="Like",1,df$botPass)
+#  check, x, 0 version
+df$botPass <-ifelse(df$Q287_1=="Like"&df$Q287_2=="Dislike"&df$Q287_3=="Neutral",1,df$botPass)
+#  check, 0, x version
+df$botPass <-ifelse(df$Q293_1=="Like"&df$Q293_2=="Neutral"&df$Q293_3=="Dislike",1,df$botPass)
+#  check, x, 0 version
+df$botPass <-ifelse(df$Q287_1=="Like"&df$Q287_2=="Dislike"&df$Q287_3=="Neutral",1,df$botPass)
+#  check, x, 0 version
+df$botPass <-ifelse(df$Q296_1=="Neutral"&df$Q296_2=="Like"&df$Q296_3=="Dislike",1,df$botPass)
+#  check, x, 0 version
+df$botPass <-ifelse(df$Q299_1=="Neutral"&df$Q299_2=="Dislike"&df$Q299_3=="Like",1,df$botPass)
+
+botStatement <-paste("This many respondents failed the initial bot check: ",as.character(nrow(df[df$botPass==0,]))," and this many passed: ",as.character(nrow(df[df$botPass==1,])), sep="")
+
+df <- df[df$botPass==1,]
+
+# 2. failed mid-way attention check (California map click)
+df$attentionPass <-ifelse(df$Q228_1=="Like",1,0)
+attentionStatement <-paste("This many respondents failed the Cali attention check: ",as.character(nrow(df[df$attentionPass==0,]))," and this many passed: ",as.character(nrow(df[df$attentionPass==1,])), sep="")
+df <- df[df$attentionPass==1,]
+
+# 3. Did not say study was about map\*, politic\*, color\*, vot\*, democrat\*, republican\*, u.s\*, us\*, or united states\*
+df$manipulationPass <-NA
+for(i in 1:nrow(df)){
+  df[i,"manipulationPass"]<-(str_contains(df[i,"Q236"],c("map", "politic", "color", "vot", "democrat", "republican", "u.s", "us", "united states"),ignore.case=TRUE, logic="or"))}
+df$manipulationPass <-ifelse(df$manipulationPass==TRUE,1,0)
+
+
+manipulationStatement <-paste("This many respondents failed the manipulation attention check: ",as.character(nrow(df[df$manipulationPass==0,]))," and this many passed: ",as.character(nrow(df[df$manipulationPass==1,])), sep="")
+
+# 4. Used outside resources
+outsideResourcesStatement <-paste("This many respondents said they used outside resources: ",as.character(nrow(df[df$Q262==1,]))," and this many did not: ",as.character(nrow(df[df$Q262==2,])), sep="")
+
+df$outsideResources <-ifelse(df$Q262==2,"no","yes")
+
+```
+
+`r botStatement`  
+`r attentionStatement`  
+`r manipulationStatement` . Since so many failed the manipulation statement and it was open-ended, we will include this as a moderator in secondary analyses rather than excluding all those participants. It may have been too stringet a manipulation check. This is a way in which we deviate from the preregistration.  
+`r outsideResourcesStatement` . We'll also run analyses with and without excluding these participants rather than immediately removing all of them.  
+
+## Prepare data for analyses
+Convert from wide to long and separate the Task 1 and Task 2 data
+```{r wide to long}
+# list of demographics variables and responses to open-ended questions at end
+demographicsVars <-c("subjectID",
+                    "Party_Likeability_Democrats",
+                     "Party_Likeability_Republicans",
+                     "Polarization_More_Divided_Than_Before",
+                     "Polarization_Problem",
+                     "Polarization_Half_Country_Ignored",
+                     "Polarization_Same_Values",
+                     "studyAbout",
+                 "colorsThink",
+                 "whichColorsT1",
+                 "whichColorsT2",
+                 "candidate2016",
+                 "candidate2020",
+                 "voterRegistrationStatus",
+                 "age",
+                 "gender",
+                 "ethnicity",
+                 "stateLiveIn",
+                 "highestDegree")
+
+df <-varRename(df, c("ResponseId",
+                      "Party_Likability_1",
+                     "Party_Likability_2",
+                     "Polarization_Beliefs_1",
+                     "Polarization_Beliefs_2",
+                     "Polarization_Beliefs_3",
+                     "Polarization_Beliefs_4",
+                     "Q236",
+                     "Q238",
+                     "Q240",
+                     "Q242",
+                     "Q244",
+                     "Q246",
+                     "Q248",
+                     "Q250",
+                     "Q252",
+                     "Q256",
+                     "Q258",
+                     "Q260"),
+               demographicsVars)
+# create wide subset for task 1
+dt1 <-dplyr::select(df,"mapNumCode","condition",all_of(demographicsVars),"X1_Q174_11":"X8_Q179_11")
+# convert it to long
+dt1long <-gather(dt1,"X1_Q174_11":"X8_Q179_11",key="task1Trial",value="task1PercentDemocrat")
+# remove NA rows (since all participants didn't do all versions of the task)
+dt1long <-dt1long[!is.na(dt1long$task1PercentDemocrat),]
+
+# recode task1Trial variable to tell us which state and color the trial is
+dt1long <- separate(dt1long, task1Trial, sep="_",into=c("state","task1Version","bla"))
+dt1long$bla <-NULL
+# rename conditions and states
+dt1long$state <-varRecode(dt1long$state,c("X1","X2","X3","X4","X5","X6","X7","X8"),c("Colorado","Florida","Nevada","New Hampshire","North Carolina","Ohio","Pennsylvania","Wisconsin"))
+
+dt1long$task1Version <- varRecode(dt1long$task1Version,c("Q174", "Q175", "Q177", "Q176", "Q179"),c("grey","redBlueDich","redBlueCont","yellowGreenDich","yellowGreenCont"))
+
+#read in a codebook that tells us which states are which color
+task1colors <-read.csv("task1colorstatemappings.csv")
+dt1long <-join(dt1long,task1colors,by=c("task1Version","mapNumCode"),type="left")
+dt1long$color <-ifelse(dt1long$state==dt1long$redYellow1|dt1long$state==dt1long$redYellow2|dt1long$state==dt1long$redYellow3|dt1long$state==dt1long$redYellow4,1,2)
+# the grey states will be randomly assigned to color "1" or "2" so we can have a baseline distribution to compare the colored trials to
+for(participant in unique(dt1long$subjectID)){
+  thisList <-sample(c(1,1,1,1,2,2,2,2),8)
+  thisNum <-1
+  for(state in unique(dt1long[dt1long$subjectID==participant,]$state)){
+    if(is.na(dt1long[dt1long$subjectID==participant&dt1long$state==state,"color"])){
+      dt1long[dt1long$subjectID==participant&dt1long$state==state,]$color <-thisList[thisNum]
+      thisNum <-thisNum+1
+    }
+  }
+  
+}
+
+
+# create wide subset for task 2, percent DV
+dt2 <-dplyr::select(df,"mapNumCode","condition",all_of(demographicsVars),"Q260_1":"Q279_1")
+# convert it to long
+dt2long <-gather(dt2,c("Q260_1","Q266_1","Q272_1","Q275_1","Q184_1","Q278_1"),key="task2Version",value="task2PercentRepublican")
+# remove NA rows (since all participants didn't do all versions of the task)
+dt2long <-dt2long[!is.na(dt2long$task2PercentRepublican),]
+
+#add in the influence DV (Q261, q267, q273, q276, q186,q279)
+# since each participant will have a response to only one of those,
+# we can just add them all up to create an influence variable.
+dt2long$influence <-rowSums(dt2long[,c("Q261_1","Q267_1","Q273_1","Q276_1","Q186_1","Q279_1")],na.rm=T)
+
+
+# recode the task2version variable to tell us what color map they saw for task 2
+dt2long$task2color <-varRecode(dt2long$task2Version,c("Q260_1","Q266_1","Q272_1","Q275_1","Q184_1","Q278_1"),c("x6_green_D","x5_orange_R","x4_blue_D","x3_red_R","x1_grey_R","x2_grey_D"))
+```
+
+
+***
+# Descriptive statistics
+
+## Demographics
+```{r demographics}
+demographicDF <-dt1[,demographicsVars]
+demographicDF$age <-varRecode(demographicDF$age,c(2,3,4,5,6,7,8,9,10),c("18-24","25-34","35-44","45-54","55-59","60-64","65-74","75-84","85+"))
+demographicDF$gender <-varRecode(demographicDF$gender,c(1,2,3,4,5),c("Male","Female","Transgender Male","Transgender Female","Other"))
+demographicDF$ethnicity <-varRecode(demographicDF$ethnicity,c(1,2,3,4,5,6),c("Asian/Pacific Islander","Black/African American","Hispanic/Latino/a","Native American","White/Caucasian","Other"))
+demographicDF$highestDegree <-varRecode(demographicDF$highestDegree,c(1,2,3,4,5,6),c("Less than high school","High school degree","2-year college degree","4-year college degree","Master's degree","PhD or Professional degree"))
+
+demographicDF$voterRegistrationStatus <-varRecode(demographicDF$voterRegistrationStatus,c(2,3,4,5,6,7),c("Democrat","Republican","Independent","Other","Unaffiliated","Not registered"))
+demographicDF$candidate2020 <- varRecode(demographicDF$candidate2020,c(1,2,3),c("Biden","Trump","Neither"))
+
+dfSummary(demographicDF, plain.ascii = FALSE, style = "grid", 
+          graph.magnif = 0.75, valid.col = FALSE, tmp.img.dir = "/tmp")
+```
+
+***  
+
+# Task 1 
+### Study design
+
+|             	| Red/blue    	| Yellow/green    	| No color 	|
+|-------------	|-------------	|-----------------	|----------	|
+| **Dichotomous** 	| redBlueDich 	| yellowGreenDich 	| grey     	|
+| **Continuous**  	| redBlueCont 	| yellowGreenCont 	|          	|
+***  
+
+
+## Density plots of participants' responses by condition
+First center responses within-participant for plotting purposes
+
+```{r df to long,include=FALSE}
+
+# center percent within-participant so our density plots don't reflect participant biases
+dt1long<- dt1long %>%
+  mutate_at(. , vars(task1PercentDemocrat),funs(task1PercentDemocratC=.-ave(.,subjectID,FUN=function(x) mean(x, na.rm=T))))
+```
+
+Then plot 
+
+```{r density plots for each}
+
+
+plot <-ggplot(dt1long,aes(x=task1PercentDemocratC,y=task1Version,fill=task1Version))+
+    ggridges::stat_density_ridges()+
+    scale_fill_manual(values=rev(c("light green","green", "light blue", "blue", "grey")))+
+    theme(text=element_text(size=12),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))
+        
+
+plot
+
+```
+
+***
+
+# Task 1 analyses  
+
+## Calculate each participant's F statistic
+Each participant judged the political leaning of 8 states that were randomly assigned to one of two color-coded groups. We want to know the ratio of the Sum of Squares Between groups (SSB, which is how differently the participant judged the two groups' political leanings to be) to the Sum of Squares Within groups (SSW, which is how much variance the participant's responses had for each of the two groups).  
+
+In other words, we want to calculate an **ANOVA** for each participant and use the resulting F statistic as our index of that participant's estimate of how different the two groups' politics are. 
+```{r task 1 data processing}
+
+
+for(participant in unique(dt1long$subjectID)){
+  partdf <-dt1long[dt1long$subjectID==participant,] #create df for this subject
+
+  # calculate the participant's F score and add it to our original dataframe,
+  # along with SSW and SSB
+  partAnovaSummary <-summary(aov(task1PercentDemocrat~color,partdf))
+  dt1long[dt1long$subjectID==participant,"SSB"]<-partAnovaSummary[[1]][2][1,'Sum Sq']
+  dt1long[dt1long$subjectID==participant,"SSW"]<-partAnovaSummary[[1]][2][2,'Sum Sq']
+  dt1long[dt1long$subjectID==participant,"Fvalue"]<-partAnovaSummary[[1]][4][1,'F value']
+}
+
+# aggregate the data so we don't have 8 redundant rows for each participant's F stats
+dt1F <-dt1long %>%
+  group_by(task1Version,subjectID,Party_Likeability_Democrats,Party_Likeability_Republicans,Polarization_More_Divided_Than_Before,Polarization_Problem,Polarization_Half_Country_Ignored,Polarization_Same_Values,studyAbout,colorsThink,whichColorsT1,whichColorsT2,candidate2016,candidate2020,voterRegistrationStatus,age,gender,ethnicity,stateLiveIn,highestDegree) %>%
+  dplyr::summarize(Fvalue=mean(Fvalue,na.rm=T),SSB=mean(SSB,na.rm=T),SSW=mean(SSW,na.rm=T))
+```
+
+### Calculate the actual F statistic for the 2020 election
+Based on returns as of 10 a.m. on 11/7/2020, the F statistic for the 8 states
+```{r 2020 f stat}
+#percent of dem/rep vote that went republican. we'll pretend 3rd parties don't exist
+colorado <- (42.1/(55.3+42.1))*100 #D
+nevada <- (48/(48+49.8))*100 #D
+wisconsin <- (48.8/(48.8+49.4))*100 #D
+pennsylvania <- (49.1/(49.1+49.6))*100 #D
+newHampshire <- (45.5/(45.5+52.6))*100 #D
+florida <- (51.2/(51.2+47.8))*100 #R
+northCarolina <- (50/(50+48.6))*100 #R
+ohio <- (53.3/(53.3+45.2))*100 #R
+f2020 <- data.frame("color"=c(1,1,1,1,1,2,2,2),"percentRep"=c(colorado,nevada,wisconsin,pennsylvania,newHampshire,florida,northCarolina,ohio))
+
+# run ANOVA
+summary(aov(percentRep~color,f2020))
+
+```
+
+## Preregistered analyses for Task 1
+Do red/blue, yellow/green, and no color differ from each other? Our primary analyses are with participants' **F values** (ratio of SSB/SSW) as the outcome variable, but secondary analyses will use **SSB** and **SSW** to clarify what type of polarization, if any, we're getting. We planned to log-transform all 3 DVs, but ended up having to raise the F values to the 1/4 because the log transformation did not fully correct the positive skew.  
+
+
+```{r transform dvs}
+dt1F$FvalueLog <-log(dt1F$Fvalue+1)
+dt1F$SSBLog <-log(dt1F$SSB+1)
+dt1F$SSWLog <-log(dt1F$SSW+1)
+
+hist(dt1F$FvalueLog)
+hist(dt1F$SSBLog)
+hist(dt1F$SSWLog)
+
+# looks like we need to further transform F values because they are still quite positively skewed.
+dt1F$Fvalue4 <-dt1F$Fvalue^.25
+hist(dt1F$Fvalue4)
+```
+
+Before running the models we need to recode the color condition variable so color and gradient conditions are separate variables:  
+* Create a **gradient** variable that is -.5 for dichotomous colors, .5 for continuous, and NA for the no color condition.   
+* Then create a **LINEAR color scheme variable** that tests the prediction that participants will have the most polarized responses in red/blue condition (.5), then yellow/green (0), and the least in the no color condition (-.5).   
+* Also create an **ORTHOGONAL color scheme contrast variable** to check for the other possible pattern, a U-shape (no color = -1/3, yellow/green = 2/3, red/blue = -1/3)
+
+```{r recode color condition variable}
+# create a gradient variable 
+dt1F$colorGradient <-ifelse(grepl("Dich", dt1F$task1Version, fixed=TRUE),"dichotomous",
+                        ifelse(grepl("Cont", dt1F$task1Version,
+                                             fixed=TRUE),"continuous","grey"))
+
+# create a LINEAR color scheme variable 
+dt1F$colorLinear <-ifelse(grepl("redBlue", dt1F$task1Version, fixed=TRUE),.5,
+                        ifelse(grepl("yellowGreen", dt1F$task1Version, fixed=TRUE),0,-.5))
+# make a version of the LINEAR scheme for analyses that don't include the no color condition
+dt1F$colorLinear2 <-ifelse(grepl("redBlue", dt1F$task1Version, fixed=TRUE),.5,
+                        ifelse(grepl("yellowGreen", dt1F$task1Version,
+                                     fixed=TRUE),-.5,NA))
+
+# create an ORTHOGONAL color scheme variable
+dt1F$colorOrthogonal <-ifelse(grepl("redBlue", dt1F$task1Version, fixed=TRUE),-1.0/3.0,
+                        ifelse(grepl("yellowGreen", dt1F$task1Version, fixed=TRUE),
+                               2.0/3.0,-1.0/3.0))
+
+```
+
+### Effect of color scheme, excluding the continuous gradient conditions
+For now, I'm excluding the continuous gradient data from these analyses because the "no color" condition doesn't have an equivalent gradient manipulation.  
+
+### Mean polarization scores (F^1/4) by condition
+```{r mean scores}
+knitr::kable(varDescribeBy(dt1F$Fvalue,dt1F[,c("colorGradient","colorLinear")]))
+```
+```{r mean SSW scores}
+knitr::kable(varDescribeBy(dt1F$SSW,dt1F[,c("colorGradient","colorLinear")]))
+```
+
+```{r mean SSB scores}
+knitr::kable(varDescribeBy(dt1F$SSB,dt1F[,c("colorGradient","colorLinear")]))
+```
+
+#### Effect of color scheme on log-transformed F values, dichotomous colors only 
+```{r task 1 F color analyses}
+modFcolor <-lm(FvalueLog~colorLinear+colorOrthogonal,data=dt1F[dt1F$colorGradient!="continuous",])
+summary(modFcolor)
+modelEffectSizes(modFcolor)
+```
+
+#### Effect of color scheme on F values, dichotomous colors only, with F values to the 1/4 instead of log
+```{r task 1 F4 color analyses}
+
+
+modFcolor4 <-lm(Fvalue4~colorLinear+colorOrthogonal,data=dt1F[dt1F$colorGradient!="continuous",])
+summary(modFcolor4)
+modelEffectSizes(modFcolor4)
+```
+
+#### Effect of color scheme on Sum of Squares Within, dichotomous colors only
+```{r task 1 SSW color analyses}
+modSSWcolor<-lm(SSWLog~colorLinear+colorOrthogonal,data=dt1F[dt1F$colorGradient!="continuous",])
+summary(modSSWcolor)
+modelEffectSizes(modSSWcolor)
+```
+
+#### Effect of color scheme on Sum of Squares Between
+```{r task 1 SSB color analyses}
+modSSBcolor<-lm(SSBLog~colorLinear+colorOrthogonal,data=dt1F[dt1F$colorGradient!="continuous",])
+summary(modSSBcolor)
+modelEffectSizes(modSSBcolor)
+```
+
+### Effect of gradient, excluding the No Color condition
+Among the colored maps, does gradient have an effect?
+
+#### Effect of color gradient on F values (log-transformed)
+```{r task 1 F grad analyses}
+dt1F$colorGradientN <-varRecode(dt1F$colorGradient,c("dichotomous","continuous","grey"),c(.5,-.5,NA))
+modFgrad <-lm(FvalueLog~colorLinear2*colorGradientN,data=dt1F)
+summary(modFgrad)
+modelEffectSizes(modFgrad)
+```
+#### Effect of color gradient on F values to the 1/4 instead of log
+```{r task 1 F 4 grad analyses}
+
+modFgrad4 <-lm(Fvalue4~colorLinear2*colorGradientN,data=dt1F)
+summary(modFgrad4)
+modelEffectSizes(modFgrad4)
+```
+
+#### Effect of color gradient on Sum of Squares Within
+```{r task 1 SSW grad analyses}
+modSSWgrad<-lm(SSWLog~colorLinear2*colorGradientN,data=dt1F)
+summary(modSSWgrad)
+modelEffectSizes(modSSWgrad)
+```
+
+#### Effect of color gradient on Sum of Squares Between
+```{r task 1 SSB grad analyses}
+modSSBgrad<-lm(SSBLog~colorLinear2*colorGradientN,data=dt1F)
+summary(modSSBgrad)
+modelEffectSizes(modSSBgrad)
+```
+
+## Plot the Task 1 F values by condition
+```{r graph f values,message=FALSE,warning=FALSE}
+# remove extreme F value outliers for the sake of the graph (+3 SDs)
+dfPlot <-dt1F[dt1F$Fvalue4<=mean(dt1F$Fvalue4,na.rm=T)+3*sd(dt1F$Fvalue4,na.rm=T),]
+dfPlot$task1Version<-as.factor(dfPlot$task1Version)
+dfPlot <-dfPlot[!is.na(dfPlot$task1Version),]
+plotF <-ggplot(data=dfPlot,aes(x=task1Version,y=Fvalue4,fill=task1Version,color=task1Version))+
+  geom_bar(stat="summary",fun.y="mean", position="dodge")+
+  geom_violin(stat="ydensity",position="dodge",color="black",alpha=.6)+
+  geom_point(position=position_jitter(width=.2),alpha=.4,color="black",fill="black")+
+  theme(text=element_text(size=12),axis.title.x=element_blank(),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))+
+  labs(title="Effect of Color Condition on Polarization Estimates")+
+  ylab("Perceived Polarization\n(Participants' F-values)")+scale_x_discrete(labels=c("Uniform Grey","Continuous\nRed-Blue","Dichotomous\nRed-Blue","Continuous\nOrange-Green","Dichotomous\nOrange-Green"))+
+  scale_fill_manual(values=c("grey","#A8AFEA","#3267D2","#C9DFC5","#077F21"))+
+  scale_color_manual(values=c("grey","#A8AFEA","#3267D2","#C9DFC5", "#077F21"))+
+    scale_y_continuous(breaks=c(0,.25^.25,1^.25,  4^.25,10^.25,40^.25),labels=c(0,.25,1,4,10,40))
+plotF
+ggsave("task1_results.png",plotF)
+```
+
+***
+
+## Exploratory analyses for Task 1
+Do Biden and Trump voters think of polarization as similarly problematic?
+```{r}
+#1 joe biden #2 donald trump
+dt1F$candidate2020N <-varRecode(dt1F$candidate2020,c(1,2,3),c(.5,-.5,NA))
+
+knitr::kable(varDescribeBy(demographicDF$Polarization_More_Divided_Than_Before,demographicDF[,c("candidate2020","gender")]),caption="Polarization_More_Divided_Than_Before")
+knitr::kable(varDescribeBy(demographicDF$Polarization_Half_Country_Ignored,demographicDF[,c("candidate2020","gender")]),caption="Polarization_Half_Country_Ignored")
+knitr::kable(varDescribeBy(demographicDF$Polarization_Problem,demographicDF[,c("candidate2020","gender")]),caption="Polarization_Problem")
+knitr::kable(varDescribeBy(demographicDF$Polarization_Same_Values,demographicDF[,c("candidate2020","gender")]),caption="Polarization_Same_Values")
+```
+
+### Do Biden and Trump voters respond differently to the different color schemes?
+```{r voting plan as moderator}
+
+modF2020 <-lm(Fvalue4~colorLinear2*colorGradientN*candidate2020N,data=dt1F)
+summary(modF2020)
+modelEffectSizes(modF2020)
+knitr::kable(varDescribeBy(dt1F$Fvalue,dt1F[,c("colorGradientN","candidate2020N")]))
+```
+
+### Polarization self-reported concern predicting Task 1 polarization scores
+
+The self-report polarization items aren't so correlated that I want to combine them...
+```{r polarization correlation}
+cor(dt1F[,c("Polarization_More_Divided_Than_Before","Polarization_Problem","Polarization_Half_Country_Ignored","Polarization_Same_Values")],use="pairwise.complete.obs")
+```
+
+```{r polarization and polarization}
+modFpol<-lm(Fvalue4~colorLinear2*colorGradientN+Polarization_More_Divided_Than_Before+Polarization_Problem+Polarization_Half_Country_Ignored+Polarization_Same_Values,data=dt1F)
+summary(modFpol)
+modelEffectSizes(modF2020)
+
+```
+***
+
+# Task 2 
+### Study design
+Participants' color assignments transfer from Task 1 and they are randomly assigned to make judgments about either a Republican majority county or a Democratic majority county. 
+
+|                     	| Red/blue          	| Yellow/green        	| No color              	|
+|---------------------	|-------------------	|---------------------	|-----------------------	|
+| Republican Majority 	| R majority (red)  	| R majority (yellow) 	| R majority (no color) 	|
+| Democratic Majority 	| D majority (blue) 	| D majority (green)  	| D majority (no color) 	|
+
+
+***  
+
+## Density plots of participants' responses by condition
+
+```{r density plots Task 2}
+
+plotTask2 <-ggplot(dt2long,aes(x=task2PercentRepublican,y=task2color,color=task2color,fill=task2color))+
+    geom_point(position=position_jitter(width=.1,heigh=NULL),alpha=.4)+
+  #geom_boxplot(alpha=.5)+
+  stat_summary(fun = mean,
+               fun.min = function(x) mean(x) - sd(x), 
+               fun.max = function(x) mean(x) + sd(x), 
+               geom = "pointrange")+
+  scale_color_manual(values=c("#6d6d6d","#6d6d6d","#C8363C","#3267D2","#AF5303","#077F21"))+
+    scale_fill_manual(values=c("#6d6d6d","#6d6d6d","#C8363C","#3267D2","#AF5303","#077F21"))+
+    xlab("Percent Likelihood that Chris is Republican")+ylab("Map Version")+
+  scale_y_discrete(labels=c("Grey Rep Majority","Grey Dem Majority","Red Rep Majority","Blue Dem Majority","Orange Rep Majority","Green Dem Majority"))+
+    theme(text=element_text(size=12),
+        legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))+geom_vline(xintercept=50)
+        
+
+plotTask2
+ggsave("baserate_task_scatterplot.png",plotTask2, height=7)
+```
+
+# Task 2 analyses
+
+First we need to create separate color and political majority variables.  
+
+We'll create a "majorityCond" where Dem= -.5 and Rep = .5.
+```{r recode task2 conditions}
+dt2long$majorityCond <-varRecode(dt2long$task2Version,c("Q260_1","Q266_1","Q272_1","Q275_1","Q184_1","Q278_1"),c(-.5,.5,-.5,.5,.5,-.5))
+dt2long$colorCond <-as.factor(dt2long$condition)
+
+```
+
+Descriptive statistics for each of the experimental conditions:
+```{r task2 descriptives}
+dt2summary <-aggregate(dt2long$task2PercentRepublican,by=list(dt2long$majorityCond,dt2long$colorCond),FUN=mean)
+dt2summary <-varRename(dt2summary, c("Group.1","Group.2","x"),c("Majority Condition","Color Condition","Mean Estimate (percent Republican)"))
+dt2summarySD <-aggregate(dt2long$task2PercentRepublican,by=list(dt2long$majorityCond,dt2long$colorCond),FUN=sd)
+dt2summarySD <-varRename(dt2summarySD, c("Group.1","Group.2","x"),c("Majority Condition","Color Condition","SD Estimate"))
+dt2summary <-join(dt2summary,dt2summarySD,by=c("Majority Condition","Color Condition"))
+DT::datatable(dt2summary,caption="Mean and SD of voting behavior estimates by condition, Task 2")
+```
+In our central analysis for Task 2, we'll use grey (no color) as the reference level for our colorCond factor. That way the main effect of majorityCond will be a manipulation/attention check that participants are noticing the numeric information presented on the map.  We will conduct parallel analyses with the participants' ratings of *how important it is that the target vote* as the outcome variable.
+```{r task 2 regression}
+
+dt2long$colorCond<-relevel(dt2long$colorCond,ref="grey")
+modTask2 <-lm(task2PercentRepublican~colorCond*majorityCond,data=dt2long)
+summary(modTask2)
+modelEffectSizes(modTask2)
+```
+
+Descriptive statistics of influence DV for each of the experimental conditions:
+```{r task2 descriptives influence}
+dt2summary <-aggregate(dt2long$influence,by=list(dt2long$majorityCond,dt2long$colorCond),FUN=mean)
+dt2summary <-varRename(dt2summary, c("Group.1","Group.2","x"),c("Majority Condition","Color Condition","Mean Estimate (influence)"))
+dt2summarySD <-aggregate(dt2long$influence,by=list(dt2long$majorityCond,dt2long$colorCond),FUN=sd)
+dt2summarySD <-varRename(dt2summarySD, c("Group.1","Group.2","x"),c("Majority Condition","Color Condition","SD Estimate"))
+dt2summary <-join(dt2summary,dt2summarySD,by=c("Majority Condition","Color Condition"))
+DT::datatable(dt2summary,caption="Mean and SD of influence estimates by condition, Task 2")
+```
+```{r task 2 influence regression}
+cor.test(dt2long$task2PercentRepublican,dt2long$influence)
+modTask2influence <-lm(influence~colorCond*majorityCond,data=dt2long)
+summary(modTask2influence)
+modelEffectSizes(modTask2influence)
+```
