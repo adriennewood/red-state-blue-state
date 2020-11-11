@@ -1,5 +1,5 @@
 # red-state-blue-state
-R code and output for planned and actual analyses for preregistered study [OSF project and preregistration information here](https://osf.io/gq8f2/): 
+R code and output for planned and actual analyses for preregistered study, [OSF project and preregistration information here](https://osf.io/gq8f2/): 
 
 **Title**: Red state, blue state: Do dichotomized political maps increase perceived polarization?  
 **Authors**: Rémy A. Furrer (1), Gary Lupyan (2), Karen Schloss (2), Paula M. Niedenthal (2), & Adrienne Wood (1)  
