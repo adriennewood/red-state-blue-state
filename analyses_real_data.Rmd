@@ -14,7 +14,7 @@ output:
 
 ```{r load libraries,include=F}
 library(pacman)
-p_load(knitr,DT,ggridges,lmSupport,ggplot2, dplyr,tidyr,MASS,sjmisc,tidyverse,plyr,summarytools)
+p_load(knitr,DT,ggridges,lmSupport,ggplot2, dplyr,tidyr,MASS,sjmisc,tidyverse,plyr,summarytools,interactions)
 knitr::opts_chunk$set(results = 'asis',      
                comment = NA,
                prompt  = FALSE,
@@ -220,25 +220,47 @@ First center responses within-participant for plotting purposes
 # center percent within-participant so our density plots don't reflect participant biases
 dt1long<- dt1long %>%
   mutate_at(. , vars(task1PercentDemocrat),funs(task1PercentDemocratC=.-ave(.,subjectID,FUN=function(x) mean(x, na.rm=T))))
+
+dt1long$colorGraph <-ifelse(dt1long$color==1&dt1long$condition=="redblue","red",
+                            ifelse(dt1long$color==2&dt1long$condition=="redblue","blue",
+                                   ifelse(dt1long$color==2&dt1long$condition=="greenorange","green",
+                                          ifelse(dt1long$color==1&dt1long$condition=="greenorange","orange","grey"))))
+
+
+```
+
+Get average participant responses for each condition x state for the sake of the plot
+```{r}
+
+dt1Graph<-aggregate(dt1long$task1PercentDemocratC,by=list("state"=dt1long$state,"task1Version"=dt1long$task1Version,"colorGraph"=dt1long$colorGraph),FUN="mean")
+dt1Graph$task1PercentDemocratC <-dt1Graph$x
 ```
 
 Then plot 
 
 ```{r density plots for each}
-
-
-plot <-ggplot(dt1long,aes(x=task1PercentDemocratC,y=task1Version,fill=task1Version))+
-    ggridges::stat_density_ridges()+
-    scale_fill_manual(values=rev(c("light green","green", "light blue", "blue", "grey")))+
+dt1Graph$stateN <-as.numeric(as.factor(dt1Graph$state))
+dt1Graph$stateAbbrev <-varRecode(dt1Graph$stateN,c(1,2,3,4,5,6,7,8),c("CO","FL","NV","NH","NC","OH","PN","WI"))
+dt1long$task1VersionG<-varRecode(dt1long$task1Version,c("grey","redBlueDich","redBlueCont","yellowGreenDich","yellowGreenCont"),c("5. Uniform Grey","1. Red/Blue\nDichotomous","2. Red/Blue\nContinuous","3. Orange/Green\nDichotomous","4. Orange/Green\nContinuous"))
+dt1Graph$task1VersionG<-varRecode(dt1Graph$task1Version,c("grey","redBlueDich","redBlueCont","yellowGreenDich","yellowGreenCont"),c("5. Uniform Grey","1. Red/Blue\nDichotomous","2. Red/Blue\nContinuous","3. Orange/Green\nDichotomous","4. Orange/Green\nContinuous"))
+plot <-ggplot(dt1long,aes(x=task1PercentDemocratC,y=task1VersionG,color=colorGraph,fill=colorGraph))+
+    ggridges::stat_density_ridges(scale=.7,alpha=.9)+
+  geom_point(data=dt1Graph,alpha=.9,position=position_nudge(x = 0, y = -.1))+
+  ggrepel::geom_text_repel(data=dt1Graph,aes(label=stateAbbrev),size=2.5,segment.size  = 0.2,segment.color = "black",color="black",position=position_nudge(x = 0, y = -.1))+
+  #geom_text(data=dt1Graph,aes(label=stateN),alpha=.8)+
+    scale_fill_manual(values=c("#3267D2","#077F21","#6d6d6d","#AF5303","#C8363C"))+
+    scale_color_manual(values=c("#3267D2","#077F21","#6d6d6d","#AF5303","#C8363C"))+scale_y_discrete(breaks=c("5. Uniform Grey","1. Red/Blue\nDichotomous","2. Red/Blue\nContinuous","3. Orange/Green\nDichotomous","4. Orange/Green\nContinuous"),labels=c("Uniform Grey","Red/Blue\nDichotomous"," Red/Blue\nContinuous","Orange/Green\nDichotomous","Orange/Green\nContinuous"))+
+  scale_x_continuous(breaks=c(-20,-10,0,10,20),labels=c("30%","40%","50%","60%","70%"),limits = c(-20,20))+
     theme(text=element_text(size=12),
         legend.position="none",panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
-        axis.line = element_line(colour = "black"))
+        axis.line = element_line(colour = "black"))+ylab(label="Polarization Task Condition")+xlab(label="Percent Estimated to Vote Democratic")
+  #+annotate("label",label="1. Colorado\n2. Florida\n3. Nevada\n4. New Hampshire\n5. North Carolina\n6. Ohio\n7. Pennsylvania\n8. Wisconsin",x=15,y="2. Red/Blue\nContinuous",alpha=.5)
         
 
 plot
-
+ggsave("task1_distributions_by_state.png",plot)
 ```
 
 ***
@@ -357,7 +379,6 @@ modelEffectSizes(modFcolor)
 #### Effect of color scheme on F values, dichotomous colors only, with F values to the 1/4 instead of log
 ```{r task 1 F4 color analyses}
 
-
 modFcolor4 <-lm(Fvalue4~colorLinear+colorOrthogonal,data=dt1F[dt1F$colorGradient!="continuous",])
 summary(modFcolor4)
 modelEffectSizes(modFcolor4)
@@ -395,6 +416,25 @@ summary(modFgrad4)
 modelEffectSizes(modFgrad4)
 ```
 
+#### Post-hoc simple effects estimates
+We'll recenter the predictor variables in the regression to test the simple effects
+```{r simple effects}
+dt1F$colorLinear2continuous <-dt1F$colorLinear2+.5
+dt1F$colorLinear2discrete <-dt1F$colorLinear2-.5
+
+# simple effect of color scale for continuous color gradient
+modFgrad4simplecontinuous <-lm(Fvalue4~colorLinear2continuous*colorGradientN,data=dt1F)
+summary(modFgrad4simplecontinuous)
+modelEffectSizes(modFgrad4simplecontinuous)
+
+#simple effect of color scale for discrete color gradient
+modFgrad4simplediscrete <-lm(Fvalue4~colorLinear2discrete*colorGradientN,data=dt1F)
+summary(modFgrad4simplediscrete)
+modelEffectSizes(modFgrad4simplediscrete)
+
+
+```
+
 #### Effect of color gradient on Sum of Squares Within
 ```{r task 1 SSW grad analyses}
 modSSWgrad<-lm(SSWLog~colorLinear2*colorGradientN,data=dt1F)
@@ -413,26 +453,36 @@ modelEffectSizes(modSSBgrad)
 ```{r graph f values,message=FALSE,warning=FALSE}
 # remove extreme F value outliers for the sake of the graph (+3 SDs)
 dfPlot <-dt1F[dt1F$Fvalue4<=mean(dt1F$Fvalue4,na.rm=T)+3*sd(dt1F$Fvalue4,na.rm=T),]
+dfPlot$task1Version <-varRecode(dfPlot$task1Version,c("grey","redBlueCont","redBlueDich","yellowGreenCont","yellowGreenDich"),c("Uniform Grey","Continuous\nRed-Blue","Dichotomous\nRed-Blue","Continuous\nOrange-Green","Dichotomous\nOrange-Green"))
 dfPlot$task1Version<-as.factor(dfPlot$task1Version)
 dfPlot <-dfPlot[!is.na(dfPlot$task1Version),]
 plotF <-ggplot(data=dfPlot,aes(x=task1Version,y=Fvalue4,fill=task1Version,color=task1Version))+
   geom_bar(stat="summary",fun.y="mean", position="dodge")+
   geom_violin(stat="ydensity",position="dodge",color="black",alpha=.6)+
-  geom_point(position=position_jitter(width=.2),alpha=.4,color="black",fill="black")+
+  geom_point(position=position_jitter(width=.2),alpha=.4,color="black",fill="black")+theme_classic()+
   theme(text=element_text(size=12),axis.title.x=element_blank(),
         legend.position="none",panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         axis.line = element_line(colour = "black"))+
-  labs(title="Effect of Color Condition on Polarization Estimates")+
-  ylab("Perceived Polarization\n(Participants' F-values)")+scale_x_discrete(labels=c("Uniform Grey","Continuous\nRed-Blue","Dichotomous\nRed-Blue","Continuous\nOrange-Green","Dichotomous\nOrange-Green"))+
-  scale_fill_manual(values=c("grey","#A8AFEA","#3267D2","#C9DFC5","#077F21"))+
-  scale_color_manual(values=c("grey","#A8AFEA","#3267D2","#C9DFC5", "#077F21"))+
+  ylab("Perceived Polarization\n(Participants' F-values)")+
+  scale_fill_manual(values=c("#C9DFC5","#A8AFEA","#077F21","#3267D2","grey"))+
+  scale_color_manual(values=c("#C9DFC5","#A8AFEA","#077F21","#3267D2","grey"))+
     scale_y_continuous(breaks=c(0,.25^.25,1^.25,  4^.25,10^.25,40^.25),labels=c(0,.25,1,4,10,40))
 plotF
-ggsave("task1_results.png",plotF)
+ggsave("task1_results.png",plotF,width=5,height=4)
 ```
 
+### 2x2 plot for manuscript
+```{r 2x2 plot}
+dt1F$colorGradientGraph <-as.factor(dt1F$colorGradientN)
+dt1F$colorLinearGraph <-as.factor(dt1F$colorLinear2)
+modFgrad4plot <-lm(Fvalue4~colorLinearGraph*colorGradientGraph,data=dt1F)
+int_plot <-cat_plot(modFgrad4plot,pred=colorGradientGraph,modx=colorLinearGraph,pred.values=c("-0.5","0.5"),modx.values=c("-0.5","0.5"),x.label="Gradient Steps",y.label="Perceived Polarization\n(Participants' F-values)",legend.main="Color Scale", pred.labels=c("Continuous","Dichotomous"),modx.labels=c("Orange/Green","Red/Blue"),colors=c("#077F21","#3267D2"),int.type="prediction",geom="line")+
+  geom_hline(yintercept=mean(dt1F[dt1F$task1Version=="grey",]$Fvalue4,na.rm=T),size=1,color="grey")+scale_y_continuous(breaks=c(.02^(1/4), .12^(1/4), .4^(1/4), mean(dt1F[dt1F$task1Version=="grey",]$Fvalue4,na.rm=T), 1, 2^(1/4), 4^(1/4)),labels=c(".02",".12",".4","Uniform Grey\nCondition Mean","1","2","4"))+annotate("text",x=2,y=3.1^(1/4),label="*",size=10) +theme_classic()
+int_plot
+ggsave("interaction_plot_polarization.png",int_plot,width=5,height=3.5)
+```
 ***
 
 ## Exploratory analyses for Task 1
